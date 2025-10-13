@@ -1,4 +1,4 @@
-# VERSION=2025.8.25.1
+# VERSION=2025.10.13.1
 name: Build Single Remote-Falcon Image
 
 on:
@@ -83,3 +83,4 @@ jobs:
             OTEL_OPTS=${{ secrets.OTEL_OPTS }}
             OTEL_URI=${{ secrets.OTEL_URI }}
             MONGO_URI=${{ secrets.MONGO_URI }}
+            CLARITY_PROJECT_ID=${{ secrets.CLARITY_PROJECT_ID }}

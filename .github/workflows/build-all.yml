@@ -1,4 +1,4 @@
-# VERSION=2025.8.25.1
+# VERSION=2025.10.13.1
 name: Build All Remote-Falcon Images
 
 on:
@@ -126,6 +126,7 @@ jobs:
             OTEL_OPTS=${{ secrets.OTEL_OPTS }}
             OTEL_URI=${{ secrets.OTEL_URI }}
             MONGO_URI=${{ secrets.MONGO_URI }}
+            CLARITY_PROJECT_ID=${{ secrets.CLARITY_PROJECT_ID }}
 
       # 🔹 Scheduled: build only if tag doesn't exist
       - name: Build and Push Image (scheduled run)
@@ -157,3 +158,4 @@ jobs:
             OTEL_OPTS=${{ secrets.OTEL_OPTS }}
             OTEL_URI=${{ secrets.OTEL_URI }}
             MONGO_URI=${{ secrets.MONGO_URI }}
+            CLARITY_PROJECT_ID=${{ secrets.CLARITY_PROJECT_ID }}
