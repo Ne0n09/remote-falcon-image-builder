@@ -96,13 +96,6 @@ jobs:
             echo "ℹ️ Image $IMAGE:$TAG does not exist"
           fi
 
-      # NEW: Enable multi-arch buildx
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       # 🔹 Manual: always build & push (overwrite allowed)
       - name: Build and Push Image (manual run)
         if: github.event_name == 'workflow_dispatch'
@@ -111,7 +104,6 @@ jobs:
           DOCKER_BUILD_SUMMARY: false
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ steps.normalize.outputs.target_repo }}/${{ matrix.service }}:${{ steps.version.outputs.short_sha }}
@@ -144,7 +136,6 @@ jobs:
           DOCKER_BUILD_SUMMARY: false
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ steps.normalize.outputs.target_repo }}/${{ matrix.service }}:${{ steps.version.outputs.short_sha }}
