@@ -54,8 +54,6 @@ These should be set before building new images.
 
 - MONGO_URI
 
-- CLARITY_PROJECT_ID
-
 ## GitHub Actions Workflows
 
 Click Actions on the top bar. There are two workflows provided

@@ -1,4 +1,4 @@
-# VERSION=2025.10.13.1
+# VERSION=2026.3.30.1
 name: Build All Remote-Falcon Images
 
 on:
@@ -52,7 +52,7 @@ jobs:
           esac
 
       - name: Checkout Remote-Falcon Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
         with:
           repository: Remote-Falcon/remote-falcon-${{ matrix.service }}
           ref: ${{ steps.ref.outputs.ref }}
@@ -71,7 +71,7 @@ jobs:
         run: echo "target_repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4.0.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -99,7 +99,7 @@ jobs:
       # 🔹 Manual: always build & push (overwrite allowed)
       - name: Build and Push Image (manual run)
         if: github.event_name == 'workflow_dispatch'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7.0.0
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
@@ -126,12 +126,11 @@ jobs:
             OTEL_OPTS=${{ secrets.OTEL_OPTS }}
             OTEL_URI=${{ secrets.OTEL_URI }}
             MONGO_URI=${{ secrets.MONGO_URI }}
-            CLARITY_PROJECT_ID=${{ secrets.CLARITY_PROJECT_ID }}
 
       # 🔹 Scheduled: build only if tag doesn't exist
       - name: Build and Push Image (scheduled run)
         if: github.event_name == 'schedule' && steps.check.outputs.exists == 'false'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7.0.0
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
@@ -158,4 +157,3 @@ jobs:
             OTEL_OPTS=${{ secrets.OTEL_OPTS }}
             OTEL_URI=${{ secrets.OTEL_URI }}
             MONGO_URI=${{ secrets.MONGO_URI }}
-            CLARITY_PROJECT_ID=${{ secrets.CLARITY_PROJECT_ID }}
