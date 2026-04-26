@@ -1,4 +1,4 @@
-# VERSION=2026.3.30.1
+# VERSION=2026.4.26.1
 name: Build All Remote-Falcon Images
 
 on:
@@ -71,13 +71,19 @@ jobs:
         run: echo "target_repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v4.0.0
+        uses: docker/login-action@v4.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}        
+          password: ${{ secrets.GITHUB_TOKEN }}      
 
-      # 🔹 Only check GCHR if scheduled run. Otherwise, build if manual run.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.0.0
+        with:
+          driver: docker-container
+          buildkitd-flags: --debug  
+
+      # Only check GCHR if scheduled run. Otherwise, build if manual run.
       - name: Check if image already exists
         if: github.event_name == 'schedule'
         id: check
@@ -96,15 +102,19 @@ jobs:
             echo "ℹ️ Image $IMAGE:$TAG does not exist"
           fi
 
-      # 🔹 Manual: always build & push (overwrite allowed)
-      - name: Build and Push Image (manual run)
-        if: github.event_name == 'workflow_dispatch'
-        uses: docker/build-push-action@v7.0.0
+      # Build and Push Image
+      - name: Build and Push Images
+        if: github.event_name == 'workflow_dispatch' || steps.check.outputs.exists == 'false'
+        uses: docker/build-push-action@v7.1.0
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
           context: .
           push: true
+          platforms: linux/amd64
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ghcr.io/${{ steps.normalize.outputs.target_repo }}/${{ matrix.service }}:${{ steps.version.outputs.short_sha }}
             ghcr.io/${{ steps.normalize.outputs.target_repo }}/${{ matrix.service }}:${{ steps.version.outputs.commit_date }}
@@ -126,34 +136,5 @@ jobs:
             OTEL_OPTS=${{ secrets.OTEL_OPTS }}
             OTEL_URI=${{ secrets.OTEL_URI }}
             MONGO_URI=${{ secrets.MONGO_URI }}
-
-      # 🔹 Scheduled: build only if tag doesn't exist
-      - name: Build and Push Image (scheduled run)
-        if: github.event_name == 'schedule' && steps.check.outputs.exists == 'false'
-        uses: docker/build-push-action@v7.0.0
-        env:
-          DOCKER_BUILD_SUMMARY: false
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/${{ steps.normalize.outputs.target_repo }}/${{ matrix.service }}:${{ steps.version.outputs.short_sha }}
-            ghcr.io/${{ steps.normalize.outputs.target_repo }}/${{ matrix.service }}:${{ steps.version.outputs.commit_date }}
-            ghcr.io/${{ steps.normalize.outputs.target_repo }}/${{ matrix.service }}:latest
-          build-args: |
-            HOST_ENV=${{ secrets.HOST_ENV }}
-            VERSION=${{ secrets.VERSION }}
-            CONTROL_PANEL_API=${{ secrets.CONTROL_PANEL_API }}
-            VIEWER_API=${{ secrets.VIEWER_API }}
-            VIEWER_JWT_KEY=${{ secrets.VIEWER_JWT_KEY }}
-            GOOGLE_MAPS_KEY=${{ secrets.GOOGLE_MAPS_KEY }}
-            PUBLIC_POSTHOG_KEY=${{ secrets.PUBLIC_POSTHOG_KEY }}			
-            GA_TRACKING_ID=${{ secrets.GA_TRACKING_ID }}
-            MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }}
-            HOSTNAME_PARTS=${{ secrets.HOSTNAME_PARTS }}
-            SOCIAL_META=${{ secrets.SOCIAL_META }}
-            SWAP_CP=${{ secrets.SWAP_CP }}
-            VIEWER_PAGE_SUBDOMAIN=${{ secrets.VIEWER_PAGE_SUBDOMAIN }}			
-            OTEL_OPTS=${{ secrets.OTEL_OPTS }}
-            OTEL_URI=${{ secrets.OTEL_URI }}
-            MONGO_URI=${{ secrets.MONGO_URI }}
+            IMAGES_S3_BUCKET=${{ secrets.IMAGES_S3_BUCKET }}
+            IMAGES_CDN_ENDPOINT=${{ secrets.IMAGES_CDN_ENDPOINT }}

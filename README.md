@@ -54,6 +54,10 @@ These should be set before building new images.
 
 - MONGO_URI
 
+- IMAGES_S3_BUCKET
+
+- IMAGES_CDN_ENDPOINT
+
 ## GitHub Actions Workflows
 
 Click Actions on the top bar. There are two workflows provided
