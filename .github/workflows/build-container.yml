@@ -1,4 +1,4 @@
-# VERSION=2026.4.26.1
+# VERSION=2026.5.14.1
 name: Build Single Remote-Falcon Image
 
 on:
@@ -31,15 +31,30 @@ jobs:
       - name: Checkout Remote-Falcon repo
         uses: actions/checkout@v6.0.2
         with:
-          repository: Remote-Falcon/remote-falcon-${{ github.event.inputs.service }}
+          repository: Remote-Falcon/remote-falcon-platform
           ref: ${{ github.event.inputs.ref }}
           fetch-depth: 0
 
-      - name: Get short SHA + Commit Date
+      - name: Get App short SHA + Commit Date
         id: version
+        env:
+          SERVICE: ${{ github.event.inputs.service }}
         run: |
-          short_sha=$(git rev-parse --short HEAD)
-          commit_date=$(git log -1 --format=%cd --date=format:'%Y.%m.%d')
+          app_path="apps/$SERVICE"
+
+          if [ ! -d "$app_path" ]; then
+            echo "App path not found: $app_path" >&2
+            exit 1
+          fi
+
+          short_sha=$(git log -1 --format=%h -- "$app_path")
+          commit_date=$(git log -1 --format=%cd --date=format:'%Y.%m.%d' -- "$app_path")
+
+          if [ -z "$short_sha" ] || [ -z "$commit_date" ]; then
+            echo "No commit metadata found for $app_path" >&2
+            exit 1
+          fi
+
           echo "short_sha=$short_sha" >> $GITHUB_OUTPUT
           echo "commit_date=$commit_date" >> $GITHUB_OUTPUT
 
@@ -58,14 +73,38 @@ jobs:
         uses: docker/setup-buildx-action@v4.0.0
         with:
           driver: docker-container
-          buildkitd-flags: --debug  
+          buildkitd-flags: --debug
+
+      - name: Resolve Build Config
+        id: cfg
+        env:
+          SERVICE: ${{ github.event.inputs.service }}
+        run: |
+          case "$SERVICE" in
+            control-panel|external-api|viewer|plugins-api)
+              context="."
+              dockerfile="apps/$SERVICE/Dockerfile"
+              ;;
+            ui)
+              context="apps/$SERVICE"
+              dockerfile="Dockerfile"
+              ;;
+            *)
+              echo "Unknown service: $SERVICE" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "context=$context" >> "$GITHUB_OUTPUT"
+          echo "dockerfile=$dockerfile" >> "$GITHUB_OUTPUT"
 
       - name: Build and Push Image to GitHub Container Registry
         uses: docker/build-push-action@v7.1.0
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
-          context: .
+          context: ${{ steps.cfg.outputs.context }}
+          file: ${{ steps.cfg.outputs.context }}/${{ steps.cfg.outputs.dockerfile }}
           push: true
           platforms: linux/amd64
           provenance: false
@@ -82,13 +121,13 @@ jobs:
             VIEWER_API=${{ secrets.VIEWER_API }}
             VIEWER_JWT_KEY=${{ secrets.VIEWER_JWT_KEY }}
             GOOGLE_MAPS_KEY=${{ secrets.GOOGLE_MAPS_KEY }}
-            PUBLIC_POSTHOG_KEY=${{ secrets.PUBLIC_POSTHOG_KEY }}			
+            PUBLIC_POSTHOG_KEY=${{ secrets.PUBLIC_POSTHOG_KEY }}
             GA_TRACKING_ID=${{ secrets.GA_TRACKING_ID }}
             MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }}
             HOSTNAME_PARTS=${{ secrets.HOSTNAME_PARTS }}
             SOCIAL_META=${{ secrets.SOCIAL_META }}
             SWAP_CP=${{ secrets.SWAP_CP }}
-            VIEWER_PAGE_SUBDOMAIN=${{ secrets.VIEWER_PAGE_SUBDOMAIN }}			
+            VIEWER_PAGE_SUBDOMAIN=${{ secrets.VIEWER_PAGE_SUBDOMAIN }}
             OTEL_OPTS=${{ secrets.OTEL_OPTS }}
             OTEL_URI=${{ secrets.OTEL_URI }}
             MONGO_URI=${{ secrets.MONGO_URI }}

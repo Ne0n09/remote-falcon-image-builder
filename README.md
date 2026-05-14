@@ -1,12 +1,12 @@
 # remote-falcon-image-builder
 
-This is a template repository provides two GitHub Actions workflows that can be utilized to build [Remote Falcon](https://remotefalcon.com/) images([packages](https://docs.github.com/en/packages/quickstart)) on GitHub and push them to the [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
-
-[Remote Falcon](https://remotefalcon.com/) is an awesome project and I thought I would give back by creating a simplified way to run Remote Falcon for those who would like to self host beyond just these [ways](https://docs.remotefalcon.com/docs/developer-docs/running-it/methods).
+This template repository provides two GitHub Actions workflows that can be utilized to build private [Remote Falcon](https://remotefalcon.com/) images([packages](https://docs.github.com/en/packages/quickstart)) on GitHub and push them to the [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 
 [cloudflared-remotefalcon](https://github.com/Ne0n09/cloudflared-remotefalcon/tree/main) helps you self host [Remote Falcon](https://remotefalcon.com/) with guided setup and configuration using [Cloudflare Tunnels](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) and your own server capable of running [Docker](https://www.docker.com/) through the use of various helper scripts.
 
 For full details check the [documentation](https://ne0n09.github.io/cloudflared-remotefalcon/)!
+
+To learn more about [Remote Falcon](https://remotefalcon.com/) check out the documentation [here](https://docs.remotefalcon.com/).
 
 ## Create Repository from Template
 
